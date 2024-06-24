@@ -41,30 +41,77 @@
 </div>
 </template>
 
-<script>
-import {ref, watch, computed} from 'vue'
-import QuizResult from './QuizResult'
-    export default {
-        components: {QuizResult,},
-        props: ['value', 'len', 'length', 'timer'],
-        setup(props, context){
-            const optIndex =  ref(Math.floor(Math.random()*4))
-            const questions = ref(props.value.question)
-            const options = ref(props.value.incorrect_answers)
-            const qLength = ref(props.length)
-            const cQuestion = ref(props.len)
-            const optionName = ref(['A', 'B', 'C', 'D'])
-            const answered = ref([])
-            const showResult = ref(false)
-            const isDisabled = ref(true)
-            const countDown = ref(props.timer)
-            const totalTime = ref({...props.timer})
-            const totTimeTaken = ref({hours:0, minutes: 0, seconds: 0})
+<script setup lang="ts">
+import {ref, watch, computed, defineProps, defineEmits} from 'vue'
+import QuizResult from './QuizResult.vue'
+            const props = defineProps(['value', 'len', 'length', 'timer'])
+            const emit = defineEmits(['nextQuestion', 'goHome', 'playAgain'])
 
-            const qType = ref(props.value.type)
+            interface Timer {
+                hour: number,
+                minute: number,
+                second: number
+            }
+
+            interface Answered {
+                ans: string,
+                correctAns: string,
+                question: string,
+                score: number
+                countDown: Object,
+            }
+
+            const optIndex =  ref<number>(Math.floor(Math.random()*4))
+            const questions = ref<string>(props.value.question)
+            const options = ref<Array<string>>(props.value.incorrect_answers)
+            const qLength = ref<number>(props.length)
+            const cQuestion = ref<number>(props.len)
+            const optionName = ref<Array<string>>(['A', 'B', 'C', 'D'])
+            const answered = ref<Array<Answered>>([])
+            const showResult = ref<boolean>(false)
+            const isDisabled = ref<boolean>(true)
+            const countDown = ref<Timer>(props.timer)
+            const totalTime = ref<Timer>({...props.timer})
+            const totTimeTaken = ref<Timer>({hour:0, minute: 0, second: 0})
+
+            const qType = ref<string>(props.value.type)
+            
             options.value.splice(optIndex.value, 0, props.value.correct_answer)
             
-            let timerId = setInterval(() => {
+            // let timerId = setInterval(() => {
+            //     if(countDown.value.second - 1 <= 0 ){
+            //         if(countDown.value.minute - 1 === 0){
+            //             if(countDown.value.hour > 0){
+            //                 if (countDown.value.hour - 1 === 0){
+            //                     countDown.value.hour = 0;
+            //                     countDown.value.minute = 59;
+            //                     countDown.value.second = 59
+            //                 } else {
+            //                     countDown.value.hour = countDown.value.hour - 1
+            //                     countDown.value.minute = 59;
+            //                     countDown.value.second = 59
+            //                 }
+            //             } else {
+            //                 countDown.value.minute = 0;
+            //                 countDown.value.second = 59;
+            //             }
+            //         } else {
+            //             if(countDown.value.minute -1 < 0){
+            //                 countDown.value.second = 0;
+            //                 // alert('time over')
+            //                 publishResult();
+            //             } else {
+
+            //                 countDown.value.minute = countDown.value.minute - 1
+            //                 countDown.value.second = 59;
+            //             }
+            //         }
+            //     } else {
+            //         countDown.value.second = countDown.value.second - 1
+            //     }
+            // },1000)
+
+            function clock(){       
                 if(countDown.value.second - 1 <= 0 ){
                     if(countDown.value.minute - 1 === 0){
                         if(countDown.value.hour > 0){
@@ -95,18 +142,20 @@ import QuizResult from './QuizResult'
                 } else {
                     countDown.value.second = countDown.value.second - 1
                 }
-            },1000)
+            }
+
+            let timerId = setInterval(clock, 1000)
 
             function timeTaken(){
                 console.log(totalTime.value)
                 let totConsumedSec = Number(countDown.value.hour * 3600) + Number(countDown.value.minute * 60) + Number(countDown.value.second)
                 let totGivenSec = Number(totalTime.value.hour * 3600) + Number(totalTime.value.minute * 60) + Number(totalTime.value.second)
 
-                let seconds = totGivenSec - totConsumedSec
+                let seconds:number = totGivenSec - totConsumedSec
 
-                let totMinutes = Math.trunc(seconds/60)
-                let totSeconds = seconds % 60
-                let totHours = 0
+                let totMinutes:number = Math.trunc(seconds/60)
+                let totSeconds:number = seconds % 60
+                let totHours:number = 0
                 if(totMinutes > 59){
                     totHours = totMinutes / 60  
                     totMinutes = totMinutes % 60
@@ -138,7 +187,7 @@ import QuizResult from './QuizResult'
                 if(cQuestion.value === qLength.value){
                     publishResult()
                 } else {
-                    context.emit('nextQuestion', 'kjk')
+                    emit('nextQuestion')
                 }
             }
 
@@ -150,28 +199,28 @@ import QuizResult from './QuizResult'
                 console.log('re renderes at watch')
                 questions.value = nVal.question
                 options.value = nVal.incorrect_answers
-                let index = Math.floor(Math.random()*4);
+                let index:number = Math.floor(Math.random()*4);
                 options.value.splice(index, 0, nVal.correct_answer)
                 qType.value = nVal.type
                 
             })
 
-            const hourVal = computed(() => {
+            const hourVal = computed<boolean>(() => {
                 return countDown.value.hour <= 9
             })
 
-            const minuteVal = computed(() => {
+            const minuteVal = computed<boolean>(() => {
                 return  countDown.value.minute <= 9
             })
 
-            const secondVal = computed(() => {
+            const secondVal = computed<boolean>(() => {
                 return countDown.value.second <= 9
             })
             
             console.log(countDown.value.minute, hourVal , 'val ')
 
 
-            const lenChange = computed(() => {
+            const lenChange = computed<number>(() => {
                 return props.len
             })
 
@@ -182,28 +231,28 @@ import QuizResult from './QuizResult'
                 // }
             })
 
-            function addAnswer(ans, index, event) {
+            function addAnswer(ans: string, index: number, event: any) {
                 isDisabled.value = false
                 // console.log('your Answer', ans)
                 // console.log('question', questions.value)
                 // console.log('correct ans', props.value.correct_answer)
                 
-                let classList = document.getElementsByClassName('bgColor');
+                let classList:HTMLCollection = document.getElementsByClassName('bgColor');
                 for(let x of classList){
                     x.classList.remove('bgColor')
                 }
                 
                 event.target.classList.add('bgColor')
 
-                let score = 0
-                let updated = false
+                let score:number = 0
+                let updated:boolean = false
                 console.log(index)
 
                 if(ans === props.value.correct_answer){
                     score = 1
                 }
 
-                let val = {ans, question: questions.value, correctAns: props.value.correct_answer, score, countDown}
+                let val:Answered = {ans, question: questions.value, correctAns: props.value.correct_answer, score, countDown}
 
                 answered.value = answered.value.map((x) => {
                         if(x.question === questions.value ){
@@ -224,18 +273,18 @@ import QuizResult from './QuizResult'
 
             function goHome() {
                 showResult.value = false
-                context.emit('goHome', '')
+                emit('goHome')
             }
 
             function playAgain() {
                 showResult.value = false
                 answered.value = []
-                context.emit('playAgain', '')
+                console.log('total timer', totalTime.value)
+                countDown.value = {...totalTime.value}
+                timerId = setInterval(clock, 1000)
+                emit('playAgain')
             }
 
-            return { questions, options, cQuestion, qLength, optionName, nextQuestion, qType, addAnswer, showResult, answered, goHome, playAgain, isDisabled, countDown, totTimeTaken, hourVal, minuteVal, secondVal}
-        }
-    }
 </script>
 <style scoped>
     .qBox{

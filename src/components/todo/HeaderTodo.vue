@@ -18,12 +18,14 @@ export default {
         let todoList = ref([])
 
         function addTodo(){
-            todoList.value.push({
-                title: todoTitle.value,
-                isComplete: false,
-            })
-            console.log(todoList)
-            todoTitle.value = ''
+            if(todoTitle.value !== ''){
+                todoList.value.push({
+                    title: todoTitle.value,
+                    isComplete: false,
+                })
+                console.log(todoList)
+                todoTitle.value = ''
+            }
             // context.emit('todoList', todoList.value)
         }
         

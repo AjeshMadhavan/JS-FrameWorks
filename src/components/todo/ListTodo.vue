@@ -5,9 +5,9 @@
             <input v-else type="text" placeholder="Edit Todo" v-model="nValue"/>
         </div>
         <div class="listItems">
-            <button @click="complete">{{ todo.isComplete ? 'Un-Complete' : 'Complete' }}</button>
+            <button @click="complete" :disabled="isEditable">{{ todo.isComplete ? 'Un-Complete' : 'Complete' }}</button>
             <button @click=" changeEditable(); saveValue();" v-if="isEditable">Save</button>
-            <button @click="changeEditable" v-else>Edit</button>
+            <button @click="changeEditable" :disabled="todo.isComplete" v-else>Edit</button>
             <button @click="deleteTodo">delete</button>
         </div>
     </div>
@@ -72,5 +72,9 @@
     font-size: 16px;
     padding: 5px ;
     border-radius: 5px;
+    cursor: pointer;
+}
+.listItems button:disabled{
+    cursor: not-allowed;
 }
 </style>

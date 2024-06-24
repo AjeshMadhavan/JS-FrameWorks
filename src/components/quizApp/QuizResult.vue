@@ -46,19 +46,41 @@
     </div>
 </template>
 
-<script>
-import {ref, computed} from 'vue'
-export default{
-    props: ['data', 'totQ', 'totTimeTaken'],
-    setup(props, context) {
-        const showStats = ref(true);
-        const result = ref(props.data)
-        const score = ref(0)
-        const totalQ = ref(props.totQ)
+<script setup lang="ts">
+import {ref, computed, defineProps, defineEmits} from 'vue'
+
+        interface Answered {
+            ans: string,
+            correctAns: string,
+            question: string,
+            score: number
+            countDown: Object,
+        }
+
+        interface Timer {
+                hour: number,
+                minute: number,
+                second: number
+        }
+
+        // const props = defineProps(['data', 'totQ', 'totTimeTaken'])
+        const props = defineProps<{
+            data: Array<Answered>,
+            totQ: number,
+            totTimeTaken: Timer
+        }>()
+
+        const emit = defineEmits(['goHome', 'playAgain'])
+        
+
+        const showStats = ref<boolean>(true);
+        const result = ref<Array<Answered>>(props.data)
+        const score = ref<number>(0)
+        const totalQ = ref<number>(props.totQ)
         // const totCorrect = ref(0)
-        const percent = ref(0)
-        const grade = ref('')
-        const timeTaken = ref(props.totTimeTaken)
+        const percent = ref<number>(0)
+        const grade = ref<string>('')
+        const timeTaken = ref<Timer>(props.totTimeTaken)
 
         result.value.map(x => {
             if(x.score == 1){
@@ -84,27 +106,24 @@ export default{
             grade.value = 'F'
         }
 
-        const hourVal = computed(() => {
+        const hourVal = computed<boolean>(() => {
             return timeTaken.value.hour <= 9
         })
-        const minuteVal = computed(() => {
+        const minuteVal = computed<boolean>(() => {
             return timeTaken.value.minute <= 9
         })
-        const secondVal = computed(() => {
+        const secondVal = computed<boolean>(() => {
             return  timeTaken.value.second <= 9
         })
 
         function goHome() {
-            context.emit('goHome', '')
+            emit('goHome')
         }
 
         function playAgain() {
-            context.emit('playAgain', '')
+            emit('playAgain')
         }
 
-        return {showStats, result, grade, totalQ, score, percent, timeTaken, hourVal, minuteVal, secondVal, goHome, playAgain}
-    }
-}
 </script>
 
 <style scoped>
